@@ -19,7 +19,7 @@ A local web app that aligns an `.mp3` and lyrics into word-level karaoke timings
 ## Quick Start
 
 ```bash
-uv sync --python 3.12
+uv sync
 uv run python run.py
 ```
 
