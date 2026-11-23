@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>MemeSong Studio — Karaoke Lyric Video Maker for X</title>
+  <link rel="stylesheet" href="/static/styles.css?v=4">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <h1>MemeSong Studio</h1>
+      <span class="badge">1080×1080 · X Ready</span>
+    </div>
+    <div class="topbar-actions">
+      <label class="sr-only" for="projectSelect">Saved projects</label>
+      <select id="projectSelect" class="select-compact" aria-label="Saved projects">
+        <option value="">New song…</option>
+      </select>
+      <button id="newProjectBtn" type="button" class="btn btn-secondary">+ New Song</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- Left panel: Upload, Lyrics, Style -->
+    <section class="panel controls-panel" aria-label="Song and visual controls">
+      <div class="card">
+        <h2>1. Song &amp; Lyrics</h2>
+
+        <div id="audioDropZone" class="dropzone" tabindex="0" role="button" aria-label="Upload MP3 audio file">
+          <input id="audioInput" type="file" accept=".mp3,.wav,.m4a,.ogg,.flac,audio/*" hidden>
+          <div class="dropzone-icon" aria-hidden="true">🎵</div>
+          <div id="audioDropLabel" class="dropzone-text">
+            <strong>Drop .mp3 here</strong> or click to browse
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="titleInput">Song Title (optional)</label>
+            <input id="titleInput" type="text" placeholder="My Meme Song">
+          </div>
+          <div class="field">
+            <label for="artistInput">Artist / Handle (optional)</label>
+            <input id="artistInput" type="text" placeholder="@handle">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <label for="lyricsInput">Lyrics (one line per screen line)</label>
+            <span class="hint">You can also drop a .txt file here</span>
+          </div>
+          <textarea id="lyricsInput" rows="8" placeholder="Paste your lyrics here...&#10;Each line becomes a karaoke line&#10;Blank lines and [Chorus] tags are ignored"></textarea>
+        </div>
+
+        <div class="align-options">
+          <label class="checkbox-label" for="isolateVocalsInput">
+            <input id="isolateVocalsInput" type="checkbox" class="visually-hidden-fallback" checked>
+            <span>Isolate vocals first (Demucs)</span>
+          </label>
+          <div class="inline-select">
+            <label for="modelSelect">Model</label>
+            <select id="modelSelect">
+              <option value="base" selected>Whisper Base (fast)</option>
+              <option value="small">Whisper Small (accurate)</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="alignBtn" type="button" class="btn btn-primary btn-full">
+          Align Lyrics to Audio
+        </button>
+
+        <div id="alignStatus" class="job-status hidden" role="status" aria-live="polite">
+          <div class="job-status-row">
+            <span id="alignStatusText">Starting alignment…</span>
+            <span id="alignStatusPct">0%</span>
+          </div>
+          <progress id="alignProgress" max="100" value="0">0%</progress>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Background &amp; Style</h2>
+
+        <div class="segmented" role="radiogroup" aria-label="Background mode">
+          <label class="seg-option">
+            <input type="radio" name="bgMode" value="gradient" checked>
+            <span>Animated Gradient</span>
+          </label>
+          <label class="seg-option">
+            <input type="radio" name="bgMode" value="cover">
+            <span>Cover Image (Ken Burns)</span>
+          </label>
+        </div>
+
+        <div id="gradientOptions" class="style-group">
+          <span class="field-label">Gradient Theme</span>
+          <div id="themeGrid" class="theme-grid"></div>
+        </div>
+
+        <div id="coverOptions" class="style-group hidden">
+          <div id="coverDropZone" class="dropzone dropzone-sm" tabindex="0" role="button" aria-label="Upload cover background image">
+            <input id="coverInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            <div id="coverDropLabel" class="dropzone-text">
+              <strong>Drop background image</strong> or click to browse
+            </div>
+          </div>
+          <div id="coverPreviewRow" class="cover-preview-row hidden">
+            <img id="coverThumb" alt="Uploaded background thumbnail">
+            <button id="removeCoverBtn" type="button" class="btn btn-ghost btn-sm">Remove image</button>
+          </div>
+          <div class="field">
+            <div class="field-header">
+              <label for="bgDimSlider">Background Dimming</label>
+              <span id="bgDimValue" class="mono">15%</span>
+            </div>
+            <input id="bgDimSlider" type="range" min="0" max="75" step="5" value="15">
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Lyric Position</span>
+          <div class="segmented segmented-3" role="radiogroup" aria-label="Lyric position">
+            <label class="seg-option">
+              <input type="radio" name="lyricPosition" value="top">
+              <span>Top</span>
+            </label>
+            <label class="seg-option">
+              <input type="radio" name="lyricPosition" value="center" checked>
+              <span>Center</span>
+            </label>
+            <label class="seg-option">
+              <input type="radio" name="lyricPosition" value="bottom">
+              <span>Bottom</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Text Outline</span>
+          <div class="segmented segmented-3" role="radiogroup" aria-label="Text outline">
+            <label class="seg-option">
+              <input type="radio" name="textOutline" value="none">
+              <span>Off</span>
+            </label>
+            <label class="seg-option">
+              <input type="radio" name="textOutline" value="dark" checked>
+              <span>Dark</span>
+            </label>
+            <label class="seg-option">
+              <input type="radio" name="textOutline" value="white">
+              <span>White</span>
+            </label>
+          </div>
+        </div>
+
+        <label class="checkbox-label" for="showNeighborsInput">
+          <input id="showNeighborsInput" type="checkbox" class="visually-hidden-fallback">
+          <span>Show previous &amp; next lines</span>
+        </label>
+
+        <div class="field-row align-center">
+          <div class="field">
+            <label for="accentColorInput">Karaoke Highlight Color</label>
+            <div class="color-picker-wrap">
+              <input id="accentColorInput" type="color" value="#38bdf8">
+              <span id="accentColorHex" class="mono">#38bdf8</span>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-header">
+              <label for="offsetSlider">Global Sync Offset</label>
+              <span id="offsetValue" class="mono">0.00s</span>
+            </div>
+            <input id="offsetSlider" type="range" min="-1.0" max="1.0" step="0.05" value="0">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right panel: Live Preview, Export, Timing Editor -->
+    <section class="panel preview-panel" aria-label="Preview and timing editor">
+      <div class="card preview-card">
+        <div class="preview-header">
+          <h2>Live 1:1 Preview</h2>
+          <span id="previewTime" class="mono">0:00 / 0:00</span>
+        </div>
+
+        <div class="canvas-frame">
+          <canvas id="previewCanvas" width="1080" height="1080" aria-label="Karaoke lyric video preview"></canvas>
+        </div>
+
+        <audio id="audioPlayer" controls preload="metadata"></audio>
+
+        <div class="export-bar">
+          <button id="saveBtn" type="button" class="btn btn-secondary" disabled>Save Timings</button>
+          <button id="renderBtn" type="button" class="btn btn-primary" disabled>Export MP4 for X</button>
+          <a id="downloadLink" class="btn btn-success hidden" download>Download MP4</a>
+        </div>
+
+        <div id="renderStatus" class="job-status hidden" role="status" aria-live="polite">
+          <div class="job-status-row">
+            <span id="renderStatusText">Rendering…</span>
+            <span id="renderStatusPct">0%</span>
+          </div>
+          <progress id="renderProgress" max="100" value="0">0%</progress>
+        </div>
+      </div>
+
+      <div class="card editor-card">
+        <div class="editor-header">
+          <h2>3. Word Timing Editor</h2>
+          <span class="hint">Click any word to seek &amp; tweak</span>
+        </div>
+
+        <div id="wordInspector" class="word-inspector hidden">
+          <div class="inspector-word">
+            Selected: <strong id="inspWordText">—</strong>
+          </div>
+          <div class="inspector-controls">
+            <label>
+              Start
+              <input id="inspStart" type="number" step="0.05" min="0">
+            </label>
+            <button id="inspStartMinus" type="button" class="btn btn-ghost btn-xs" title="Earlier by 0.1s">-0.1s</button>
+            <button id="inspStartPlus" type="button" class="btn btn-ghost btn-xs" title="Later by 0.1s">+0.1s</button>
+            <button id="inspSetStartNow" type="button" class="btn btn-secondary btn-xs">Set = Now</button>
+
+            <label>
+              End
+              <input id="inspEnd" type="number" step="0.05" min="0">
+            </label>
+            <button id="inspEndMinus" type="button" class="btn btn-ghost btn-xs" title="Earlier by 0.1s">-0.1s</button>
+            <button id="inspEndPlus" type="button" class="btn btn-ghost btn-xs" title="Later by 0.1s">+0.1s</button>
+            <button id="inspSetEndNow" type="button" class="btn btn-secondary btn-xs">Set = Now</button>
+          </div>
+        </div>
+
+        <div id="lyricsTimeline" class="lyrics-timeline scroller">
+          <div class="empty-state">
+            Upload an MP3, paste lyrics, and click <strong>Align Lyrics to Audio</strong> to generate word-level karaoke timings.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script src="/static/app.js?v=6" defer></script>
+</body>
+</html>
