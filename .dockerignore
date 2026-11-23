@@ -1,0 +1,9 @@
+.git/
+.venv/
+__pycache__/
+*.pyc
+projects/
+.DS_Store
+*.mp4
+*.wav
+*.mp3
